@@ -3,16 +3,26 @@ package de.thro.inf.prg3.a03;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import static de.thro.inf.prg3.a03.Cat.State.*;
-
 public class Cat {
 	private static final Logger logger = LogManager.getLogger();
+
+	public int getSleep() {
+		return sleep;
+	}
+
+	public int getAwake() {
+		return awake;
+	}
+
+	public int getDigest() {
+		return digest;
+	}
 
 	// valid states
 	public enum State {SLEEPING, HUNGRY, DIGESTING, PLAYFUL, DEAD}
 
 	// initially, animals are sleeping
-	private State state = State.SLEEPING;
+	private de.thro.inf.prg3.a03.State state ;
 
 	// state durations (set via constructor), ie. the number of ticks in each state
 	private final int sleep;
@@ -29,50 +39,14 @@ public class Cat {
 		this.sleep = sleep;
 		this.awake = awake;
 		this.digest = digest;
+		this.state=new SleepingState(sleep);
 	}
 
-	public void tick(){
-		logger.info("tick()");
-		time = time + 1;
+	public void tick() {
 
-		switch (state) {
-			case SLEEPING:
-				if (time == sleep) {
-					logger.info("Yoan... getting hungry!");
-					state = HUNGRY;
-					time = 0;
-				}
-				break;
-			case HUNGRY:
-				if(time == awake){
-					logger.info("I've starved for a too long time...good bye...");
-					state = DEAD;
-				}
-				break;
-			case DIGESTING:
-				timeDigesting = timeDigesting + 1;
-				if (timeDigesting == digest) {
-					logger.info("Getting in a playful mood!");
-					state = PLAYFUL;
-				}
-				break;
-			case PLAYFUL:
-				if (time >= awake) {
-					logger.info("Yoan... getting tired!");
-					state = SLEEPING;
-					time = 0;
-				}
-				break;
-
-			case DEAD:
-				break;
-			default:
-				throw new IllegalStateException("Unknown cat state " + state.name());
-		}
-
-		logger.info(state.name());
-
+		this.state = state.tick(this);
 	}
+
 
 	/**
 	 * This would be a user interaction: feed the cat to change its state!
@@ -82,30 +56,31 @@ public class Cat {
 			throw new IllegalStateException("Can't stuff a cat...");
 
 		logger.info("You feed the cat...");
+		this.state=((HungryState)state).feed(this);
 
 		// change state and reset the timer
-		state = State.DIGESTING;
-		timeDigesting = 0;
 	}
 
+
+
 	public boolean isAsleep() {
-		return state.equals(State.SLEEPING);
+		return state instanceof SleepingState;
 	}
 
 	public boolean isPlayful() {
-		return state.equals(State.PLAYFUL);
+		return state instanceof Playfull;
 	}
 
 	public boolean isHungry() {
-		return state.equals(State.HUNGRY);
+		return state instanceof HungryState ;
 	}
 
 	public boolean isDigesting() {
-		return state.equals(State.DIGESTING);
+		return state instanceof DigestingState;
 	}
 
 	public boolean isDead() {
-		return state == State.DEAD;
+		return state instanceof DeathState ;
 	}
 
 	@Override
